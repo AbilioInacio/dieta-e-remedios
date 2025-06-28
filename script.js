@@ -23,6 +23,22 @@ document.addEventListener("DOMContentLoaded", () => {
     lastUpdateCheck: null,
   };
 
+  function telaCheia() {
+    if (document.fullscreenEnabled) {
+      document.documentElement.requestFullscreen();
+    } else if (document.webkitFullscreenEnabled) {
+      // Safari
+      document.documentElement.webkitRequestFullscreen();
+    } else if (document.mozFullScreenEnabled) {
+      // Firefox
+      document.documentElement.mozRequestFullScreen();
+    } else if (document.msFullscreenEnabled) {
+      // IE11
+      document.documentElement.msRequestFullscreen();
+    }
+  }
+  telaCheia();
+
   // --- FUNÇÕES DE DADOS (CARREGAR E SALVAR) ---
   function saveData() {
     localStorage.setItem("healthTrackerData", JSON.stringify(appData));
