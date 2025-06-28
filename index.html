@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Rotina</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Biblioteca para ícones (opcional, mas melhora a UI) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <h1><i class="fa-solid fa-pills"></i> Minha Rotina de Saúde</h1>
+            <nav>
+                <button id="nav-dashboard" class="nav-btn active"><i class="fa-solid fa-table-columns"></i> Dashboard</button>
+                <button id="nav-meds" class="nav-btn"><i class="fa-solid fa-capsules"></i> Medicações</button>
+                <button id="nav-diet" class="nav-btn"><i class="fa-solid fa-utensils"></i> Dieta</button>
+                <button id="nav-metrics" class="nav-btn"><i class="fa-solid fa-chart-line"></i> Métricas</button>
+            </nav>
+        </header>
+
+        <main>
+            <!-- SEÇÃO DASHBOARD -->
+            <section id="dashboard-section" class="content-section active">
+                <h2>Dashboard de Hoje</h2>
+                <div id="today-meds">
+                    <!-- Medicações de hoje serão inseridas aqui pelo JS -->
+                </div>
+            </section>
+
+            <!-- SEÇÃO MEDICAÇÕES -->
+            <section id="meds-section" class="content-section">
+                <div class="section-header">
+                    <h2>Minhas Medicações</h2>
+                    <button id="add-med-btn" class="btn-primary"><i class="fa-solid fa-plus"></i> Adicionar Medicação</button>
+                </div>
+                <div id="med-list">
+                    <!-- Lista de medicações será inserida aqui -->
+                </div>
+                <div class="report-buttons">
+                    <button id="export-meds-pdf" class="btn-secondary"><i class="fa-solid fa-file-pdf"></i> Gerar PDF da Rotina</button>
+                </div>
+            </section>
+
+            <!-- SEÇÃO DIETA -->
+            <section id="diet-section" class="content-section">
+                <h2>Plano de Alimentação</h2>
+                <div class="diet-plan">
+                    <label for="diet-breakfast">Café da Manhã:</label>
+                    <textarea id="diet-breakfast" rows="4"></textarea>
+                    
+                    <label for="diet-lunch">Almoço:</label>
+                    <textarea id="diet-lunch" rows="4"></textarea>
+
+                    <label for="diet-dinner">Jantar:</label>
+                    <textarea id="diet-dinner" rows="4"></textarea>
+
+                    <label for="diet-snacks">Lanches e Observações:</label>
+                    <textarea id="diet-snacks" rows="4"></textarea>
+                    
+                    <button id="save-diet-btn" class="btn-primary">Salvar Dieta</button>
+                </div>
+            </section>
+
+            <!-- SEÇÃO MÉTRICAS -->
+            <section id="metrics-section" class="content-section">
+                <div class="section-header">
+                    <h2>Métricas de Saúde</h2>
+                    <button id="add-metric-btn" class="btn-primary"><i class="fa-solid fa-plus"></i> Adicionar Métrica</button>
+                </div>
+                <div id="metrics-list">
+                     <!-- Lista de métricas será inserida aqui -->
+                </div>
+                 <div class="report-buttons">
+                    <button id="export-summary-pdf" class="btn-secondary"><i class="fa-solid fa-file-pdf"></i> Gerar Resumo de Progresso</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL PARA ADICIONAR/EDITAR MEDICAÇÃO (inicialmente escondido) -->
+    <div id="med-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">×</span>
+            <h3 id="modal-title">Adicionar Medicação</h3>
+            <form id="med-form">
+                <input type="hidden" id="med-id">
+                <label for="med-name">Nome do Remédio:</label>
+                <input type="text" id="med-name" required>
+
+                <label for="med-quantity">Quantidade (ex: 1 comprimido, 10ml):</label>
+                <input type="text" id="med-quantity">
+
+                <label for="med-brands">Marcas e Observações (teste de eficácia):</label>
+                <textarea id="med-brands" placeholder="Ex: Marca A - OK. Marca B - causou sono."></textarea>
+                
+                <label for="med-timings">Horários (separados por vírgula, ex: 08:00, 20:00):</label>
+                <input type="text" id="med-timings" required>
+
+                <label for="med-recommendations">Recomendações (ex: tomar com comida):</label>
+                <textarea id="med-recommendations"></textarea>
+                
+                <button type="submit" class="btn-primary">Salvar</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- MODAL PARA ADICIONAR MÉTRICA -->
+    <div id="metric-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">×</span>
+            <h3>Adicionar Métrica</h3>
+            <form id="metric-form">
+                 <input type="hidden" id="metric-id">
+                <label for="metric-date">Data:</label>
+                <input type="date" id="metric-date" required>
+                
+                <label for="metric-weight">Peso (kg):</label>
+                <input type="number" step="0.1" id="metric-weight">
+
+                <label for="metric-glucose">Glicemia (mg/dL):</label>
+                <input type="number" id="metric-glucose">
+                
+                <label for="metric-cholesterol">Colesterol (mg/dL):</label>
+                <input type="number" id="metric-cholesterol">
+
+                <label for="metric-notes">Observações de Melhora:</label>
+                <textarea id="metric-notes" placeholder="Ex: Menos dor, mais energia..."></textarea>
+                
+                <button type="submit" class="btn-primary">Salvar</beta>
+            </form>
+        </div>
+    </div>
+
+    <!-- Biblioteca para gerar PDF a partir do HTML -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
