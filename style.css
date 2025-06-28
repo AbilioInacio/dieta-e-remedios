@@ -1,171 +1,202 @@
-/* --- GERAL E VARIÁVEIS --- */
+/* Estilos Globais e Mobile First */
 :root {
   --primary-color: #007bff;
   --secondary-color: #6c757d;
-  --bg-color: #f4f7f6;
-  --card-bg: #ffffff;
-  --text-color: #333;
-  --border-color: #ddd;
+  --background-color: #f8f9fa;
+  --surface-color: #ffffff;
+  --text-color: #343a40;
   --success-color: #28a745;
+  --light-success-color: #d4edda;
+  --border-color: #dee2e6;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
   margin: 0;
-  background-color: var(--bg-color);
+  background-color: var(--background-color);
   color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-.app-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-/* --- HEADER E NAVEGAÇÃO --- */
 header {
-  background-color: var(--card-bg);
-  padding: 15px 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
 
-header h1 {
-  margin: 0 0 15px 0;
-  color: var(--primary-color);
-}
-
-header nav {
+nav {
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
+  justify-content: space-around;
+  background-color: #0069d9;
+  padding: 0.5rem 0;
 }
 
 .nav-btn {
   background: none;
-  border: 1px solid var(--border-color);
-  padding: 10px 15px;
-  border-radius: 20px;
+  border: none;
+  color: white;
+  padding: 0.8rem 0.5rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  font-size: 1rem;
+  opacity: 0.7;
+  transition: opacity 0.3s, background-color 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
-
+.nav-btn i {
+  font-size: 1.2rem;
+}
 .nav-btn.active,
 .nav-btn:hover {
-  background-color: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
+  opacity: 1;
+  background-color: #0056b3;
 }
 
-/* --- CONTEÚDO PRINCIPAL --- */
-.content-section {
+main {
+  flex-grow: 1;
+  padding: 1rem;
+}
+
+.page {
   display: none;
-  background-color: var(--card-bg);
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
-
-.content-section.active {
+.page.active {
   display: block;
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-/* --- BOTÕES --- */
-.btn-primary,
-.btn-secondary {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  color: white;
-  cursor: pointer;
-  font-size: 1em;
-}
-
-.btn-primary {
-  background-color: var(--primary-color);
-}
-.btn-secondary {
-  background-color: var(--secondary-color);
-}
-
-/* --- CARD DE MEDICAÇÃO/MÉTRICA --- */
-.card {
-  background-color: #f9f9f9;
-  border: 1px solid var(--border-color);
-  border-left: 5px solid var(--primary-color);
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 5px;
-}
-
-.card.taken {
-  border-left-color: var(--success-color);
-  background-color: #e9f5ec;
-}
-
-.card h3 {
+h2 {
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.5rem;
   margin-top: 0;
 }
-.card p {
-  margin: 5px 0;
+
+/* Formulários */
+.app-form {
+  background: var(--surface-color);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
-.card .timings span {
+.app-form input,
+.app-form textarea,
+.app-form select {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+.app-form button {
+  padding: 0.8rem 1.5rem;
   background-color: var(--primary-color);
   color: white;
-  padding: 3px 8px;
-  border-radius: 12px;
-  margin-right: 5px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+.app-form button:hover {
+  background-color: #0056b3;
 }
 
-.card-actions {
-  margin-top: 15px;
+/* Listas de Itens */
+.item-list {
+  display: grid;
+  gap: 1rem;
+}
+.item-card {
+  background: var(--surface-color);
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-left: 5px solid var(--secondary-color);
+  margin-bottom: 5px;
+}
+.item-card.confirmed {
+  border-left-color: var(--success-color);
+  background-color: var(--light-success-color);
+}
+.item-card h3 {
+  margin-top: 0;
+}
+.item-card p {
+  white-space: pre-wrap;
+  margin: 0.5rem 0;
+}
+.item-card .actions {
+  margin-top: 1rem;
   display: flex;
-  gap: 10px;
+  gap: 0.5rem;
   flex-wrap: wrap;
 }
+.item-card .actions button {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.confirm-btn {
+  background-color: var(--success-color);
+  color: white;
+}
+.delete-btn {
+  background-color: #dc3545;
+  color: white;
+}
 
-.action-btn {
+.pdf-btn,
+#save-tracking-settings,
+#go-to-progress-btn {
+  display: block;
+  width: fit-content;
+  margin: 1.5rem 0;
+  padding: 0.8rem 1.5rem;
   background-color: var(--secondary-color);
   color: white;
-  padding: 8px 12px;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
 }
-.action-btn.confirm {
-  background-color: var(--success-color);
+.pdf-btn i,
+#go-to-progress-btn i {
+  margin-right: 8px;
 }
-.action-btn.edit {
-  background-color: #ffc107;
-}
-.action-btn.delete {
-  background-color: #dc3545;
-}
-
-/* --- SEÇÃO DIETA --- */
-.diet-plan textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 5px;
-  margin-bottom: 15px;
-  box-sizing: border-box; /* Garante que o padding não aumente a largura */
+.pdf-btn:hover,
+#save-tracking-settings:hover,
+#go-to-progress-btn:hover {
+  background-color: #5a6268;
 }
 
-/* --- MODAL --- */
+/* Configurações de Progresso */
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+#progress-inputs {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+/* Modal */
 .modal {
   display: none;
   position: fixed;
@@ -177,19 +208,18 @@ header nav {
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.5);
 }
-
 .modal-content {
-  background-color: var(--card-bg);
-  margin: 10% auto;
+  background-color: #fefefe;
+  margin: 15% auto;
   padding: 20px;
   border: 1px solid #888;
   width: 80%;
   max-width: 500px;
   border-radius: 8px;
+  text-align: center;
   position: relative;
 }
-
-.close-btn {
+.close-button {
   color: #aaa;
   position: absolute;
   top: 10px;
@@ -198,70 +228,71 @@ header nav {
   font-weight: bold;
   cursor: pointer;
 }
-
-/* --- FORMULÁRIOS NO MODAL --- */
-#med-form label,
-#metric-form label {
-  display: block;
-  margin-top: 10px;
-  margin-bottom: 5px;
-}
-#med-form input,
-#med-form textarea,
-#metric-form input,
-#metric-form textarea {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-}
-#med-form button,
-#metric-form button {
-  margin-top: 20px;
-  width: 100%;
+.close-button:hover,
+.close-button:focus {
+  color: black;
 }
 
-.report-buttons {
-  margin-top: 30px;
-  border-top: 1px solid var(--border-color);
-  padding-top: 20px;
-  display: flex;
-  gap: 10px;
-}
-
-/* --- RESPONSIVIDADE --- */
-@media (max-width: 768px) {
-  .modal-content {
-    width: 90%;
-    margin: 15% auto;
-  }
-  .section-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .btn-primary,
-  .btn-secondary {
-    width: 100%;
-    text-align: center;
-  }
-}
-
-@media (max-width: 480px) {
+/* Tablet - Media Query */
+@media (min-width: 768px) {
   body {
-    padding: 0;
+    flex-direction: row;
   }
-  .app-container {
-    padding: 10px;
+  header {
+    width: 220px;
+    height: 100vh;
+    position: fixed;
+    display: flex;
+    flex-direction: column;
   }
   header h1 {
-    font-size: 1.5em;
+    margin-bottom: 2rem;
   }
-  header nav {
-    gap: 5px;
+  nav {
+    flex-direction: column;
+    align-items: flex-start;
+    background: none;
+    padding: 0;
   }
   .nav-btn {
-    padding: 8px 10px;
-    font-size: 0.9em;
+    width: 100%;
+    justify-content: flex-start;
+    padding: 1rem;
+    gap: 10px;
+    flex-direction: row;
+  }
+  .nav-btn span {
+    display: inline;
+  }
+  main {
+    margin-left: 220px;
+    padding: 2rem;
+    width: calc(100% - 220px);
+  }
+  .item-list {
+    grid-template-columns: 1fr 1fr;
+  }
+  .app-form {
+    max-width: 600px;
+  }
+  #progress-inputs {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Desktop - Media Query */
+@media (min-width: 1024px) {
+  .item-list {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  }
+  .nav-btn span {
+    display: inline;
+  } /* Garantir que o texto apareça */
+}
+
+/* Estilos para telas pequenas onde o texto do nav pode ser escondido */
+@media (max-width: 767px) {
+  .nav-btn span {
+    font-size: 0.7rem;
   }
 }

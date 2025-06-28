@@ -1,141 +1,212 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gerenciador de Rotina</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Biblioteca para ícones (opcional, mas melhora a UI) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Ícones (usando Font Awesome para facilitar) -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header>
+      <h1>Rotina e Bem estar</h1>
+      <h2 style="color: aliceblue">Abilinho Saúde</h2>
+      <nav>
+        <button data-page="dashboard" class="nav-btn active">
+          <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
+        </button>
+        <button data-page="meds" class="nav-btn">
+          <i class="fas fa-pills"></i><span>Medicações</span>
+        </button>
+        <button data-page="diet" class="nav-btn">
+          <i class="fas fa-utensils"></i><span>Dieta</span>
+        </button>
+        <button data-page="workout" class="nav-btn">
+          <i class="fas fa-dumbbell"></i><span>Treino</span>
+        </button>
+        <button data-page="progress" class="nav-btn">
+          <i class="fas fa-chart-line"></i><span>Progresso</span>
+        </button>
+      </nav>
+    </header>
 
-    <div class="app-container">
-        <header>
-            <h1><i class="fa-solid fa-pills"></i> Minha Rotina de Saúde</h1>
-            <nav>
-                <button id="nav-dashboard" class="nav-btn active"><i class="fa-solid fa-table-columns"></i> Dashboard</button>
-                <button id="nav-meds" class="nav-btn"><i class="fa-solid fa-capsules"></i> Medicações</button>
-                <button id="nav-diet" class="nav-btn"><i class="fa-solid fa-utensils"></i> Dieta</button>
-                <button id="nav-metrics" class="nav-btn"><i class="fa-solid fa-chart-line"></i> Métricas</button>
-            </nav>
-        </header>
-
-        <main>
-            <!-- SEÇÃO DASHBOARD -->
-            <section id="dashboard-section" class="content-section active">
-                <h2>Dashboard de Hoje</h2>
-                <div id="today-meds">
-                    <!-- Medicações de hoje serão inseridas aqui pelo JS -->
-                </div>
-            </section>
-
-            <!-- SEÇÃO MEDICAÇÕES -->
-            <section id="meds-section" class="content-section">
-                <div class="section-header">
-                    <h2>Minhas Medicações</h2>
-                    <button id="add-med-btn" class="btn-primary"><i class="fa-solid fa-plus"></i> Adicionar Medicação</button>
-                </div>
-                <div id="med-list">
-                    <!-- Lista de medicações será inserida aqui -->
-                </div>
-                <div class="report-buttons">
-                    <button id="export-meds-pdf" class="btn-secondary"><i class="fa-solid fa-file-pdf"></i> Gerar PDF da Rotina</button>
-                </div>
-            </section>
-
-            <!-- SEÇÃO DIETA -->
-            <section id="diet-section" class="content-section">
-                <h2>Plano de Alimentação</h2>
-                <div class="diet-plan">
-                    <label for="diet-breakfast">Café da Manhã:</label>
-                    <textarea id="diet-breakfast" rows="4"></textarea>
-                    
-                    <label for="diet-lunch">Almoço:</label>
-                    <textarea id="diet-lunch" rows="4"></textarea>
-
-                    <label for="diet-dinner">Jantar:</label>
-                    <textarea id="diet-dinner" rows="4"></textarea>
-
-                    <label for="diet-snacks">Lanches e Observações:</label>
-                    <textarea id="diet-snacks" rows="4"></textarea>
-                    
-                    <button id="save-diet-btn" class="btn-primary">Salvar Dieta</button>
-                </div>
-            </section>
-
-            <!-- SEÇÃO MÉTRICAS -->
-            <section id="metrics-section" class="content-section">
-                <div class="section-header">
-                    <h2>Métricas de Saúde</h2>
-                    <button id="add-metric-btn" class="btn-primary"><i class="fa-solid fa-plus"></i> Adicionar Métrica</button>
-                </div>
-                <div id="metrics-list">
-                     <!-- Lista de métricas será inserida aqui -->
-                </div>
-                 <div class="report-buttons">
-                    <button id="export-summary-pdf" class="btn-secondary"><i class="fa-solid fa-file-pdf"></i> Gerar Resumo de Progresso</button>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <!-- MODAL PARA ADICIONAR/EDITAR MEDICAÇÃO (inicialmente escondido) -->
-    <div id="med-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">×</span>
-            <h3 id="modal-title">Adicionar Medicação</h3>
-            <form id="med-form">
-                <input type="hidden" id="med-id">
-                <label for="med-name">Nome do Remédio:</label>
-                <input type="text" id="med-name" required>
-
-                <label for="med-quantity">Quantidade (ex: 1 comprimido, 10ml):</label>
-                <input type="text" id="med-quantity">
-
-                <label for="med-brands">Marcas e Observações (teste de eficácia):</label>
-                <textarea id="med-brands" placeholder="Ex: Marca A - OK. Marca B - causou sono."></textarea>
-                
-                <label for="med-timings">Horários (separados por vírgula, ex: 08:00, 20:00):</label>
-                <input type="text" id="med-timings" required>
-
-                <label for="med-recommendations">Recomendações (ex: tomar com comida):</label>
-                <textarea id="med-recommendations"></textarea>
-                
-                <button type="submit" class="btn-primary">Salvar</button>
-            </form>
+    <main>
+      <!-- PÁGINA: DASHBOARD -->
+      <section id="dashboard-page" class="page active">
+        <h2>Dashboard Semanal</h2>
+        <div id="dashboard-summary">
+          <!-- Resumos serão inseridos aqui pelo JS -->
         </div>
-    </div>
-    
-    <!-- MODAL PARA ADICIONAR MÉTRICA -->
-    <div id="metric-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">×</span>
-            <h3>Adicionar Métrica</h3>
-            <form id="metric-form">
-                 <input type="hidden" id="metric-id">
-                <label for="metric-date">Data:</label>
-                <input type="date" id="metric-date" required>
-                
-                <label for="metric-weight">Peso (kg):</label>
-                <input type="number" step="0.1" id="metric-weight">
+      </section>
 
-                <label for="metric-glucose">Glicemia (mg/dL):</label>
-                <input type="number" id="metric-glucose">
-                
-                <label for="metric-cholesterol">Colesterol (mg/dL):</label>
-                <input type="number" id="metric-cholesterol">
+      <!-- PÁGINA: MEDICAÇÕES -->
+      <section id="meds-page" class="page">
+        <h2>Minhas Medicações</h2>
+        <form id="med-form" class="app-form">
+          <input
+            type="text"
+            id="med-name"
+            placeholder="Nome do Remédio"
+            required
+          />
+          <input
+            type="text"
+            id="med-quantity"
+            placeholder="Quantidade (ex: 1 comprimido, 5mg)"
+          />
+          <textarea
+            id="med-brands"
+            placeholder="Marcas preferidas e observações de teste"
+          ></textarea>
+          <div class="time-container">
+            <label for="med-time">Horário:</label>
+            <select id="med-time"></select>
+            <!-- Horários serão populados pelo JS -->
+          </div>
+          <input
+            type="text"
+            id="med-period"
+            placeholder="Periodicidade (ex: Diário, a cada 2 dias)"
+          />
+          <textarea
+            id="med-obs"
+            placeholder="Recomendações e observações gerais"
+          ></textarea>
+          <button type="submit">Adicionar Medicação</button>
+        </form>
+        <div id="med-list" class="item-list"></div>
+        <button id="generate-med-pdf" class="pdf-btn">
+          <i class="fas fa-file-pdf"></i> Gerar PDF da Rotina
+        </button>
+      </section>
 
-                <label for="metric-notes">Observações de Melhora:</label>
-                <textarea id="metric-notes" placeholder="Ex: Menos dor, mais energia..."></textarea>
-                
-                <button type="submit" class="btn-primary">Salvar</beta>
-            </form>
+      <!-- PÁGINA: DIETA E ALIMENTAÇÃO -->
+      <section id="diet-page" class="page">
+        <h2>Plano de Dieta</h2>
+        <form id="diet-form" class="app-form">
+          <input
+            type="text"
+            id="meal-name"
+            placeholder="Nome da Refeição (ex: Café da Manhã)"
+            required
+          />
+          <textarea
+            id="meal-items"
+            placeholder="Alimentos e quantidades"
+            required
+          ></textarea>
+          <button type="submit">Adicionar Refeição</button>
+        </form>
+        <div id="diet-list" class="item-list"></div>
+      </section>
+
+      <!-- PÁGINA: FICHA DE TREINO -->
+      <section id="workout-page" class="page">
+        <h2>Ficha de Treino</h2>
+        <form id="workout-form" class="app-form">
+          <select id="workout-day" required>
+            <option value="">Selecione o Dia da Semana</option>
+            <option value="Segunda-feira">Segunda-feira</option>
+            <option value="Terça-feira">Terça-feira</option>
+            <option value="Quarta-feira">Quarta-feira</option>
+            <option value="Quinta-feira">Quinta-feira</option>
+            <option value="Sexta-feira">Sexta-feira</option>
+            <option value="Sábado">Sábado</option>
+            <option value="Domingo">Domingo</option>
+          </select>
+          <input
+            type="text"
+            id="muscle-group"
+            placeholder="Grupo Muscular (ex: Peito e Tríceps)"
+            required
+          />
+          <textarea
+            id="exercises"
+            placeholder="Exercícios (ex: Supino Reto 3x12, Crucifixo 4x10)"
+            required
+          ></textarea>
+          <button type="submit">Adicionar Treino</button>
+        </form>
+        <div id="workout-list" class="item-list"></div>
+      </section>
+
+      <!-- PÁGINA: PROGRESSO -->
+      <section id="progress-page" class="page">
+        <h2>Acompanhamento de Progresso</h2>
+        <div class="form-container">
+          <h3>Métricas para Acompanhar</h3>
+          <div id="tracking-settings" class="settings-grid">
+            <label
+              ><input type="checkbox" data-metric="weight" /> Peso (kg)</label
+            >
+            <label
+              ><input type="checkbox" data-metric="bodyFat" /> % Gordura
+              Corporal</label
+            >
+            <label
+              ><input type="checkbox" data-metric="glucose" /> Glicemia
+              (mg/dL)</label
+            >
+            <label
+              ><input type="checkbox" data-metric="cholesterol" /> Colesterol
+              (mg/dL)</label
+            >
+            <label
+              ><input type="checkbox" data-metric="waist" /> Cintura (cm)</label
+            >
+            <label
+              ><input type="checkbox" data-metric="hips" /> Quadril (cm)</label
+            >
+            <div>
+              <label for="skinfolds-number">Dobras Cutâneas:</label>
+              <input
+                type="number"
+                id="skinfolds-number"
+                min="0"
+                max="10"
+                value="0"
+              />
+            </div>
+          </div>
+          <button id="save-tracking-settings">Salvar Configurações</button>
         </div>
+
+        <div class="form-container">
+          <h3>Registrar Novas Métricas</h3>
+          <form id="progress-form" class="app-form">
+            <input type="date" id="progress-date" required />
+            <div id="progress-inputs">
+              <!-- Inputs dinâmicos serão inseridos aqui pelo JS -->
+            </div>
+            <button type="submit">Salvar Registro</button>
+          </form>
+        </div>
+        <div id="progress-history" class="item-list"></div>
+        <button id="generate-progress-pdf" class="pdf-btn">
+          <i class="fas fa-file-pdf"></i> Gerar Resumo em PDF
+        </button>
+      </section>
+    </main>
+
+    <!-- Modal de Lembrete -->
+    <div id="reminder-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-button">×</span>
+        <h2>Lembrete Semanal</h2>
+        <p>
+          Já faz uma semana! Que tal atualizar suas métricas de progresso para
+          acompanhar sua evolução?
+        </p>
+        <button id="go-to-progress-btn">Atualizar Agora</button>
+      </div>
     </div>
 
-    <!-- Biblioteca para gerar PDF a partir do HTML -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Incluindo as bibliotecas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="script.js"></script>
-</body>
+  </body>
 </html>

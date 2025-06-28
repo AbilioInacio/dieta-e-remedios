@@ -1,466 +1,572 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // --- ELEMENTOS DO DOM ---
+  const pages = document.querySelectorAll(".page");
   const navButtons = document.querySelectorAll(".nav-btn");
-  const contentSections = document.querySelectorAll(".content-section");
-  const addMedBtn = document.getElementById("add-med-btn");
-  const medModal = document.getElementById("med-modal");
-  const medForm = document.getElementById("med-form");
-  const medList = document.getElementById("med-list");
-  const closeModalBtns = document.querySelectorAll(".close-btn");
+  const { jsPDF } = window.jspdf;
 
-  const saveDietBtn = document.getElementById("save-diet-btn");
-  const dietInputs = {
-    breakfast: document.getElementById("diet-breakfast"),
-    lunch: document.getElementById("diet-lunch"),
-    dinner: document.getElementById("diet-dinner"),
-    snacks: document.getElementById("diet-snacks"),
-  };
-
-  const addMetricBtn = document.getElementById("add-metric-btn");
-  const metricModal = document.getElementById("metric-modal");
-  const metricForm = document.getElementById("metric-form");
-  const metricsList = document.getElementById("metrics-list");
-
-  const todayMedsContainer = document.getElementById("today-meds");
-
-  const exportMedsPdfBtn = document.getElementById("export-meds-pdf");
-  const exportSummaryPdfBtn = document.getElementById("export-summary-pdf");
-
-  // --- ESTADO DO APP ---
-  let state = {
+  // Estrutura de dados inicial
+  let appData = {
     medications: [],
-    diet: { breakfast: "", lunch: "", dinner: "", snacks: "" },
-    metrics: [],
+    diet: [],
+    workouts: [],
+    progress: {
+      settings: {
+        weight: true,
+        bodyFat: false,
+        glucose: false,
+        cholesterol: false,
+        waist: false,
+        hips: false,
+        skinfolds: 0,
+      },
+      history: [],
+    },
+    lastUpdateCheck: null,
   };
 
-  // --- FUNÇÕES DE DADOS (LOCAL STORAGE) ---
-  const saveData = () => {
-    localStorage.setItem("healthAppData", JSON.stringify(state));
-  };
+  // --- FUNÇÕES DE DADOS (CARREGAR E SALVAR) ---
+  function saveData() {
+    localStorage.setItem("healthTrackerData", JSON.stringify(appData));
+  }
 
-  const loadData = () => {
-    const data = localStorage.getItem("healthAppData");
+  function loadData() {
+    const data = localStorage.getItem("healthTrackerData");
     if (data) {
-      state = JSON.parse(data);
+      appData = JSON.parse(data);
     }
-  };
+  }
 
-  // --- FUNÇÕES DE RENDERIZAÇÃO ---
-  const renderMeds = () => {
-    medList.innerHTML = "";
-    if (state.medications.length === 0) {
-      medList.innerHTML = "<p>Nenhuma medicação adicionada ainda.</p>";
-      return;
-    }
-
-    state.medications.forEach((med) => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.dataset.id = med.id;
-
-      card.innerHTML = `
-                <h3>${med.name}</h3>
-                <p><strong>Quantidade:</strong> ${med.quantity}</p>
-                <div class="timings"><strong>Horários:</strong> ${med.timings
-                  .map((t) => `<span>${t}</span>`)
-                  .join(" ")}</div>
-                <p><strong>Marcas/Testes:</strong> ${med.brands.replace(
-                  /\n/g,
-                  "<br>"
-                )}</p>
-                <p><strong>Recomendações:</strong> ${med.recommendations.replace(
-                  /\n/g,
-                  "<br>"
-                )}</p>
-                <div class="card-actions">
-                    <button class="action-btn confirm" data-id="${
-                      med.id
-                    }"><i class="fa-solid fa-check"></i> Confirmar Dose</button>
-                    <button class="action-btn edit" data-id="${
-                      med.id
-                    }"><i class="fa-solid fa-pen"></i> Editar</button>
-                    <button class="action-btn delete" data-id="${
-                      med.id
-                    }"><i class="fa-solid fa-trash"></i> Excluir</button>
-                </div>
-                <div class="taken-log">
-                    <p><strong>Histórico de consumo:</strong></p>
-                    <ul>${(med.takenLog || [])
-                      .map(
-                        (log) =>
-                          `<li>Tomado em: ${new Date(log).toLocaleString(
-                            "pt-BR"
-                          )}</li>`
-                      )
-                      .join("")}</ul>
-                </div>
-            `;
-      medList.appendChild(card);
-    });
-  };
-
-  const renderTodayDashboard = () => {
-    todayMedsContainer.innerHTML = "";
-    const today = new Date();
-    const now = today.getHours() * 60 + today.getMinutes(); // Tempo em minutos
-
-    const todayMeds = state.medications.filter((med) => {
-      // Lógica simples: mostra todos os medicamentos do dia no dashboard
-      return med.timings.length > 0;
-    });
-
-    if (todayMeds.length === 0) {
-      todayMedsContainer.innerHTML =
-        "<p>Você não tem medicações agendadas.</p>";
-      return;
-    }
-
-    todayMeds.forEach((med) => {
-      const lastTaken =
-        med.takenLog && med.takenLog.length > 0
-          ? new Date(med.takenLog[med.takenLog.length - 1])
-          : null;
-      let takenToday = false;
-      if (lastTaken && lastTaken.toDateString() === today.toDateString()) {
-        takenToday = true;
+  // --- LÓGICA DE NAVEGAÇÃO ---
+  function showPage(pageId) {
+    pages.forEach((page) => {
+      page.classList.remove("active");
+      if (page.id === pageId) {
+        page.classList.add("active");
       }
-
-      const card = document.createElement("div");
-      card.className = `card ${takenToday ? "taken" : ""}`;
-      card.innerHTML = `
-                <h3>${med.name}</h3>
-                <div class="timings"><strong>Próximos horários:</strong> ${med.timings
-                  .map((t) => `<span>${t}</span>`)
-                  .join(" ")}</div>
-                <p>${
-                  takenToday
-                    ? "✅ Dose de hoje já confirmada."
-                    : "🔴 Pendente de confirmação."
-                }</p>
-                <div class="card-actions">
-                    <button class="action-btn confirm" data-id="${
-                      med.id
-                    }"><i class="fa-solid fa-check"></i> Confirmar Dose de Hoje</button>
-                </div>
-            `;
-      todayMedsContainer.appendChild(card);
     });
-  };
-
-  const renderDiet = () => {
-    for (const key in dietInputs) {
-      dietInputs[key].value = state.diet[key] || "";
-    }
-  };
-
-  const renderMetrics = () => {
-    metricsList.innerHTML = "";
-    if (state.metrics.length === 0) {
-      metricsList.innerHTML = "<p>Nenhuma métrica adicionada.</p>";
-      return;
-    }
-    // Ordena do mais recente para o mais antigo
-    const sortedMetrics = [...state.metrics].sort(
-      (a, b) => new Date(b.date) - new Date(a.date)
-    );
-
-    sortedMetrics.forEach((metric) => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-                <h3>${new Date(metric.date + "T00:00:00").toLocaleDateString(
-                  "pt-BR"
-                )}</h3>
-                ${
-                  metric.weight
-                    ? `<p><strong>Peso:</strong> ${metric.weight} kg</p>`
-                    : ""
-                }
-                ${
-                  metric.glucose
-                    ? `<p><strong>Glicemia:</strong> ${metric.glucose} mg/dL</p>`
-                    : ""
-                }
-                ${
-                  metric.cholesterol
-                    ? `<p><strong>Colesterol:</strong> ${metric.cholesterol} mg/dL</p>`
-                    : ""
-                }
-                <p><strong>Observações:</strong> ${metric.notes.replace(
-                  /\n/g,
-                  "<br>"
-                )}</p>
-                <div class="card-actions">
-                     <button class="action-btn delete-metric" data-id="${
-                       metric.id
-                     }"><i class="fa-solid fa-trash"></i> Excluir</button>
-                </div>
-            `;
-      metricsList.appendChild(card);
+    navButtons.forEach((btn) => {
+      btn.classList.remove("active");
+      if (btn.dataset.page === pageId.replace("-page", "")) {
+        btn.classList.add("active");
+      }
     });
-  };
+  }
 
-  const renderAll = () => {
-    renderMeds();
-    renderDiet();
-    renderMetrics();
-    renderTodayDashboard();
-  };
-
-  // --- EVENT LISTENERS ---
-
-  // Navegação entre seções
   navButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      const targetId = button.id.replace("nav-", "") + "-section";
-
-      navButtons.forEach((btn) => btn.classList.remove("active"));
-      button.classList.add("active");
-
-      contentSections.forEach((section) => {
-        section.style.display = "none"; // Primeiro esconde todas
-        section.classList.remove("active");
-      });
-
-      const activeSection = document.getElementById(targetId);
-      activeSection.style.display = "block";
-      activeSection.classList.add("active");
-
-      if (targetId === "dashboard-section") {
-        renderTodayDashboard();
-      }
+      const pageId = button.dataset.page + "-page";
+      showPage(pageId);
     });
   });
 
-  // Abrir/Fechar Modais
-  addMedBtn.addEventListener("click", () => {
-    medForm.reset();
-    medForm.querySelector("#med-id").value = "";
-    medModal.querySelector("#modal-title").textContent = "Adicionar Medicação";
-    medModal.style.display = "block";
-  });
-
-  addMetricBtn.addEventListener("click", () => {
-    metricForm.reset();
-    metricForm.querySelector("#metric-id").value = "";
-    metricForm.querySelector("#metric-date").valueAsDate = new Date();
-    metricModal.style.display = "block";
-  });
-
-  closeModalBtns.forEach((btn) =>
-    btn.addEventListener("click", () => {
-      medModal.style.display = "none";
-      metricModal.style.display = "none";
-    })
-  );
-
-  window.addEventListener("click", (e) => {
-    if (e.target == medModal || e.target == metricModal) {
-      medModal.style.display = "none";
-      metricModal.style.display = "none";
+  // --- POPULAR ELEMENTOS DINÂMICOS ---
+  function populateTimeSelect() {
+    const select = document.getElementById("med-time");
+    if (!select) return;
+    select.innerHTML = "";
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        const hour = h.toString().padStart(2, "0");
+        const minute = m.toString().padStart(2, "0");
+        const time = `${hour}:${minute}`;
+        const option = document.createElement("option");
+        option.value = time;
+        option.textContent = time;
+        select.appendChild(option);
+      }
     }
-  });
+  }
 
-  // Salvar Medicação (Adicionar/Editar)
+  // --- SEÇÃO DE MEDICAÇÕES ---
+  const medForm = document.getElementById("med-form");
+  const medList = document.getElementById("med-list");
+
+  function renderMedications() {
+    medList.innerHTML = "";
+    const today = new Date().toISOString().slice(0, 10);
+    appData.medications.forEach((med) => {
+      const medCard = document.createElement("div");
+      medCard.className = "item-card";
+
+      const confirmedToday =
+        med.history && med.history.some((h) => h.date === today && h.confirmed);
+      if (confirmedToday) {
+        medCard.classList.add("confirmed");
+      }
+
+      medCard.innerHTML = `
+                <h3>${med.name} (${med.quantity})</h3>
+                <p><strong>Horário:</strong> ${med.time}</p>
+                <p><strong>Periodicidade:</strong> ${med.period}</p>
+                <p><strong>Marcas/Testes:</strong> ${med.brands}</p>
+                <p><strong>Observações:</strong> ${med.obs}</p>
+                <div class="actions">
+                    <button class="confirm-btn" data-id="${med.id}" ${
+        confirmedToday ? "disabled" : ""
+      }>Confirmar Dose de Hoje</button>
+                    <button class="delete-btn" data-id="${
+                      med.id
+                    }">Remover</button>
+                </div>
+            `;
+      medList.appendChild(medCard);
+    });
+  }
+
   medForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const id = document.getElementById("med-id").value;
-    const medData = {
-      id: id || Date.now().toString(),
+    const newMed = {
+      id: Date.now(),
       name: document.getElementById("med-name").value,
       quantity: document.getElementById("med-quantity").value,
       brands: document.getElementById("med-brands").value,
-      timings: document
-        .getElementById("med-timings")
-        .value.split(",")
-        .map((t) => t.trim()),
-      recommendations: document.getElementById("med-recommendations").value,
-      takenLog: id ? state.medications.find((m) => m.id === id).takenLog : [],
+      time: document.getElementById("med-time").value,
+      period: document.getElementById("med-period").value,
+      obs: document.getElementById("med-obs").value,
+      history: [],
     };
-
-    if (id) {
-      // Editando
-      const index = state.medications.findIndex((m) => m.id === id);
-      state.medications[index] = medData;
-    } else {
-      // Adicionando
-      state.medications.push(medData);
-    }
-
+    appData.medications.push(newMed);
     saveData();
-    renderAll();
-    medModal.style.display = "none";
+    renderMedications();
+    medForm.reset();
   });
 
-  // Ações nos Cards de Medicação (Confirmar, Editar, Excluir)
   medList.addEventListener("click", (e) => {
-    const target = e.target.closest("button");
-    if (!target) return;
-
-    const id = target.dataset.id;
-    if (target.classList.contains("delete")) {
-      if (confirm("Tem certeza que deseja excluir esta medicação?")) {
-        state.medications = state.medications.filter((m) => m.id !== id);
-        saveData();
-        renderAll();
-      }
-    } else if (target.classList.contains("edit")) {
-      const med = state.medications.find((m) => m.id === id);
-      document.getElementById("med-id").value = med.id;
-      document.getElementById("med-name").value = med.name;
-      document.getElementById("med-quantity").value = med.quantity;
-      document.getElementById("med-brands").value = med.brands;
-      document.getElementById("med-timings").value = med.timings.join(", ");
-      document.getElementById("med-recommendations").value =
-        med.recommendations;
-      medModal.querySelector("#modal-title").textContent = "Editar Medicação";
-      medModal.style.display = "block";
-    } else if (target.classList.contains("confirm")) {
-      confirmMed(id);
+    const id = parseInt(e.target.dataset.id);
+    if (e.target.classList.contains("delete-btn")) {
+      appData.medications = appData.medications.filter((med) => med.id !== id);
     }
-  });
-
-  todayMedsContainer.addEventListener("click", (e) => {
-    const target = e.target.closest("button.confirm");
-    if (target) {
-      confirmMed(target.dataset.id);
-    }
-  });
-
-  function confirmMed(id) {
-    const med = state.medications.find((m) => m.id === id);
-    if (!med.takenLog) {
-      med.takenLog = [];
-    }
-    med.takenLog.push(new Date().toISOString());
-    alert(`${med.name} confirmado como tomado!`);
-    saveData();
-    renderAll();
-  }
-
-  // Salvar Dieta
-  saveDietBtn.addEventListener("click", () => {
-    state.diet.breakfast = dietInputs.breakfast.value;
-    state.diet.lunch = dietInputs.lunch.value;
-    state.diet.dinner = dietInputs.dinner.value;
-    state.diet.snacks = dietInputs.snacks.value;
-    saveData();
-    alert("Plano de dieta salvo!");
-  });
-
-  // Salvar Métrica
-  metricForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const metricData = {
-      id: Date.now().toString(),
-      date: document.getElementById("metric-date").value,
-      weight: document.getElementById("metric-weight").value,
-      glucose: document.getElementById("metric-glucose").value,
-      cholesterol: document.getElementById("metric-cholesterol").value,
-      notes: document.getElementById("metric-notes").value,
-    };
-    state.metrics.push(metricData);
-    saveData();
-    renderMetrics();
-    metricModal.style.display = "none";
-  });
-
-  metricsList.addEventListener("click", (e) => {
-    const target = e.target.closest("button.delete-metric");
-    if (target) {
-      if (confirm("Tem certeza que deseja excluir esta métrica?")) {
-        state.metrics = state.metrics.filter((m) => m.id !== target.dataset.id);
-        saveData();
-        renderMetrics();
+    if (e.target.classList.contains("confirm-btn")) {
+      const med = appData.medications.find((m) => m.id === id);
+      const today = new Date().toISOString().slice(0, 10);
+      if (med) {
+        if (!med.history) med.history = [];
+        med.history.push({ date: today, confirmed: true });
       }
     }
+    saveData();
+    renderMedications();
+    renderDashboard();
   });
 
-  // --- FUNÇÕES DE GERAÇÃO DE PDF ---
-  exportMedsPdfBtn.addEventListener("click", () => {
-    let content = `<h1>Relatório de Rotina de Medicações</h1>`;
-    state.medications.forEach((med) => {
-      content += `
-                <div class="card">
-                    <h3>${med.name}</h3>
-                    <p><strong>Quantidade:</strong> ${med.quantity}</p>
-                    <p><strong>Horários:</strong> ${med.timings.join(", ")}</p>
-                    <p><strong>Recomendações:</strong> ${
-                      med.recommendations
-                    }</p>
-                    <p><strong>Marcas/Testes:</strong> ${med.brands}</p>
+  // --- LÓGICA DAS OUTRAS SEÇÕES (Dieta, Treino) ---
+  // Seguem um padrão similar a Medicações: form, list, render, event listeners
+  // Para abreviar, aqui está a estrutura básica.
+
+  // DIETA
+  const dietForm = document.getElementById("diet-form");
+  const dietList = document.getElementById("diet-list");
+
+  function renderDiet() {
+    dietList.innerHTML = "";
+    appData.diet.forEach((meal) => {
+      const mealCard = document.createElement("div");
+      mealCard.className = "item-card";
+      mealCard.innerHTML = `
+                <h3>${meal.name}</h3>
+                <p>${meal.items}</p>
+                <div class="actions">
+                    <button class="delete-btn" data-id="${meal.id}">Remover</button>
                 </div>
             `;
+      dietList.appendChild(mealCard);
     });
-
-    // Adiciona um pouco de estilo para o PDF ficar melhor
-    const styledContent = `
-            <style>
-                body { font-family: sans-serif; }
-                .card { border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 10px; page-break-inside: avoid; }
-                h1, h3 { color: #007bff; }
-            </style>
-            ${content}
-        `;
-
-    html2pdf().from(styledContent).save("rotina_medicacoes.pdf");
+  }
+  dietForm.addEventListener("submit", (e) => {
+    /* ... adicionar item ... */ e.preventDefault();
+    appData.diet.push({
+      id: Date.now(),
+      name: document.getElementById("meal-name").value,
+      items: document.getElementById("meal-items").value,
+    });
+    saveData();
+    renderDiet();
+    dietForm.reset();
+  });
+  dietList.addEventListener("click", (e) => {
+    /* ... remover item ... */ if (e.target.classList.contains("delete-btn")) {
+      appData.diet = appData.diet.filter(
+        (d) => d.id !== parseInt(e.target.dataset.id)
+      );
+      saveData();
+      renderDiet();
+    }
   });
 
-  exportSummaryPdfBtn.addEventListener("click", () => {
-    const sortedMetrics = [...state.metrics].sort(
-      (a, b) => new Date(a.date) - new Date(b.date)
+  // TREINO
+  const workoutForm = document.getElementById("workout-form");
+  const workoutList = document.getElementById("workout-list");
+  function renderWorkouts() {
+    workoutList.innerHTML = "";
+    // Ordenar por dia da semana
+    const weekOrder = [
+      "Segunda-feira",
+      "Terça-feira",
+      "Quarta-feira",
+      "Quinta-feira",
+      "Sexta-feira",
+      "Sábado",
+      "Domingo",
+    ];
+    const sortedWorkouts = [...appData.workouts].sort(
+      (a, b) => weekOrder.indexOf(a.day) - weekOrder.indexOf(b.day)
     );
 
-    let content = `<h1>Resumo de Progresso e Consumo</h1>`;
-
-    content += `<h2>Progresso das Métricas de Saúde</h2>`;
-    if (sortedMetrics.length > 0) {
-      content += `<div class="card">`;
-      sortedMetrics.forEach((m) => {
-        content += `<p><strong>${new Date(
-          m.date + "T00:00:00"
-        ).toLocaleDateString("pt-BR")}:</strong> `;
-        let details = [];
-        if (m.weight) details.push(`Peso: ${m.weight}kg`);
-        if (m.glucose) details.push(`Glicemia: ${m.glucose}mg/dL`);
-        if (m.cholesterol) details.push(`Colesterol: ${m.cholesterol}mg/dL`);
-        content += details.join(" | ");
-        content += `<br><em>Notas: ${m.notes}</em></p>`;
-      });
-      content += `</div>`;
-    } else {
-      content += `<p>Nenhuma métrica registrada.</p>`;
-    }
-
-    content += `<h2>Resumo de Consumo de Medicações</h2>`;
-    state.medications.forEach((med) => {
-      content += `<div class="card">`;
-      content += `<h3>${med.name}</h3>`;
-      const totalTaken = med.takenLog ? med.takenLog.length : 0;
-      content += `<p>Total de doses confirmadas: <strong>${totalTaken}</strong></p>`;
-      if (totalTaken > 0) {
-        content += "<ul>";
-        med.takenLog.forEach((log) => {
-          content += `<li>${new Date(log).toLocaleString("pt-BR")}</li>`;
-        });
-        content += "</ul>";
-      }
-      content += `</div>`;
+    sortedWorkouts.forEach((workout) => {
+      const workoutCard = document.createElement("div");
+      workoutCard.className = "item-card";
+      workoutCard.innerHTML = `
+                <h3>${workout.day} - ${workout.group}</h3>
+                <p>${workout.exercises}</p>
+                <div class="actions">
+                    <button class="delete-btn" data-id="${workout.id}">Remover</button>
+                </div>
+            `;
+      workoutList.appendChild(workoutCard);
     });
-
-    const styledContent = `
-            <style>
-                body { font-family: sans-serif; }
-                .card { border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 10px; page-break-inside: avoid; }
-                h1, h2, h3 { color: #007bff; }
-            </style>
-            ${content}
-        `;
-
-    html2pdf().from(styledContent).save("resumo_progresso.pdf");
+  }
+  workoutForm.addEventListener("submit", (e) => {
+    /* ... */ e.preventDefault();
+    appData.workouts.push({
+      id: Date.now(),
+      day: document.getElementById("workout-day").value,
+      group: document.getElementById("muscle-group").value,
+      exercises: document.getElementById("exercises").value,
+    });
+    saveData();
+    renderWorkouts();
+    workoutForm.reset();
+  });
+  workoutList.addEventListener("click", (e) => {
+    /* ... */ if (e.target.classList.contains("delete-btn")) {
+      appData.workouts = appData.workouts.filter(
+        (w) => w.id !== parseInt(e.target.dataset.id)
+      );
+      saveData();
+      renderWorkouts();
+    }
   });
 
-  // --- INICIALIZAÇÃO ---
-  loadData();
-  renderAll();
+  // --- SEÇÃO DE PROGRESSO ---
+  const trackingSettings = document.getElementById("tracking-settings");
+  const saveSettingsBtn = document.getElementById("save-tracking-settings");
+  const progressForm = document.getElementById("progress-form");
+  const progressInputs = document.getElementById("progress-inputs");
+  const progressHistory = document.getElementById("progress-history");
+
+  function renderProgressSettings() {
+    const settings = appData.progress.settings;
+    for (const key in settings) {
+      if (key === "skinfolds") {
+        document.getElementById("skinfolds-number").value = settings[key];
+      } else {
+        const checkbox = trackingSettings.querySelector(
+          `[data-metric="${key}"]`
+        );
+        if (checkbox) checkbox.checked = settings[key];
+      }
+    }
+    renderProgressInputs();
+  }
+
+  function renderProgressInputs() {
+    progressInputs.innerHTML = "";
+    const settings = appData.progress.settings;
+    for (const metric in settings) {
+      if (settings[metric] && metric !== "skinfolds") {
+        progressInputs.innerHTML += `
+                    <label>${metric.charAt(0).toUpperCase() + metric.slice(1)}:
+                        <input type="number" step="0.1" name="${metric}" placeholder="${metric}">
+                    </label>
+                `;
+      }
+    }
+    if (settings.skinfolds > 0) {
+      for (let i = 1; i <= settings.skinfolds; i++) {
+        progressInputs.innerHTML += `
+                     <label>Dobra Cutânea ${i}:
+                        <input type="number" step="0.1" name="skinfold_${i}" placeholder="Dobra ${i} (mm)">
+                    </label>
+                `;
+      }
+    }
+  }
+
+  function renderProgressHistory() {
+    progressHistory.innerHTML = "";
+    [...appData.progress.history].reverse().forEach((entry) => {
+      const entryCard = document.createElement("div");
+      entryCard.className = "item-card";
+      let content = `<h3>Registro de ${new Date(
+        entry.date + "T00:00:00"
+      ).toLocaleDateString()}</h3>`;
+      for (const key in entry.metrics) {
+        content += `<p><strong>${key.replace("_", " ")}:</strong> ${
+          entry.metrics[key]
+        }</p>`;
+      }
+      content += `<div class="actions"><button class="delete-btn" data-id="${entry.id}">Remover</button></div>`;
+      entryCard.innerHTML = content;
+      progressHistory.appendChild(entryCard);
+    });
+  }
+
+  saveSettingsBtn.addEventListener("click", () => {
+    const checkboxes = trackingSettings.querySelectorAll(
+      'input[type="checkbox"]'
+    );
+    checkboxes.forEach((cb) => {
+      appData.progress.settings[cb.dataset.metric] = cb.checked;
+    });
+    appData.progress.settings.skinfolds =
+      parseInt(document.getElementById("skinfolds-number").value) || 0;
+    saveData();
+    renderProgressInputs();
+    alert("Configurações salvas!");
+  });
+
+  progressForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const newEntry = {
+      id: Date.now(),
+      date: document.getElementById("progress-date").value,
+      metrics: {},
+    };
+    const inputs = progressInputs.querySelectorAll("input");
+    inputs.forEach((input) => {
+      if (input.value) {
+        newEntry.metrics[input.name] = input.value;
+      }
+    });
+    appData.progress.history.push(newEntry);
+    saveData();
+    renderProgressHistory();
+    renderDashboard();
+    progressForm.reset();
+  });
+
+  progressHistory.addEventListener("click", (e) => {
+    if (e.target.classList.contains("delete-btn")) {
+      const id = parseInt(e.target.dataset.id);
+      appData.progress.history = appData.progress.history.filter(
+        (h) => h.id !== id
+      );
+      saveData();
+      renderProgressHistory();
+    }
+  });
+
+  // --- SEÇÃO DE DASHBOARD ---
+  function renderDashboard() {
+    const summary = document.getElementById("dashboard-summary");
+    const today = new Date();
+    const dayOfWeek = today.toLocaleString("pt-BR", { weekday: "long" });
+
+    // Medicações do dia
+    let medHtml = '<h4><i class="fas fa-pills"></i> Medicações para Hoje</h4>';
+    const todayMeds = appData.medications
+      .filter((med) => {
+        // Lógica de periodicidade pode ser mais complexa. Por simplicidade, mostramos todas.
+        return true;
+      })
+      .sort((a, b) => a.time.localeCompare(b.time));
+
+    if (todayMeds.length > 0) {
+      medHtml += "<ul>";
+      todayMeds.forEach((med) => {
+        const confirmedToday =
+          med.history &&
+          med.history.some(
+            (h) => h.date === today.toISOString().slice(0, 10) && h.confirmed
+          );
+        medHtml += `<li class="${confirmedToday ? "confirmed" : ""}">${
+          med.time
+        } - ${med.name} ${confirmedToday ? "(Confirmado ✓)" : ""}</li>`;
+      });
+      medHtml += "</ul>";
+    } else {
+      medHtml += "<p>Nenhuma medicação programada.</p>";
+    }
+
+    // Treino do dia
+    let workoutHtml = `<h4><i class="fas fa-dumbbell"></i> Treino de Hoje (${dayOfWeek})</h4>`;
+    const todayWorkout = appData.workouts.find(
+      (w) => w.day.toLowerCase() === dayOfWeek.toLowerCase()
+    );
+    if (todayWorkout) {
+      workoutHtml += `<p><strong>${todayWorkout.group}:</strong> ${todayWorkout.exercises}</p>`;
+    } else {
+      workoutHtml += "<p>Dia de descanso!</p>";
+    }
+
+    // Último progresso
+    let progressHtml =
+      '<h4><i class="fas fa-chart-line"></i> Último Progresso Registrado</h4>';
+    const lastProgress =
+      appData.progress.history.length > 0
+        ? appData.progress.history[appData.progress.history.length - 1]
+        : null;
+    if (lastProgress) {
+      progressHtml += `<p>Data: ${new Date(
+        lastProgress.date + "T00:00:00"
+      ).toLocaleDateString()}</p>`;
+      for (const key in lastProgress.metrics) {
+        progressHtml += `<p><strong>${key.replace("_", " ")}:</strong> ${
+          lastProgress.metrics[key]
+        }</p>`;
+      }
+    } else {
+      progressHtml += "<p>Nenhum registro de progresso ainda.</p>";
+    }
+
+    summary.innerHTML = `<div class="item-card">${medHtml}</div><div class="item-card">${workoutHtml}</div><div class="item-card">${progressHtml}</div>`;
+  }
+
+  // --- GERAÇÃO DE PDF ---
+  document.getElementById("generate-med-pdf").addEventListener("click", () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("Rotina de Medicações", 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+
+    let y = 30;
+    appData.medications.forEach((med) => {
+      if (y > 280) {
+        // Nova página
+        doc.addPage();
+        y = 20;
+      }
+      doc.setFontSize(12);
+      doc.text(`${med.name} (${med.quantity})`, 14, (y += 10));
+      doc.setFontSize(10);
+      doc.text(
+        `- Horário: ${med.time} | Periodicidade: ${med.period}`,
+        16,
+        (y += 6)
+      );
+      doc.text(
+        `- Marcas e Testes: ${doc.splitTextToSize(med.brands, 170)}`,
+        16,
+        (y += 6)
+      );
+      y += (doc.splitTextToSize(med.brands, 170).length - 1) * 5;
+      doc.text(
+        `- Observações: ${doc.splitTextToSize(med.obs, 170)}`,
+        16,
+        (y += 6)
+      );
+      y += (doc.splitTextToSize(med.obs, 170).length - 1) * 5;
+      y += 5;
+    });
+
+    doc.save("rotina_medicacoes.pdf");
+  });
+
+  document
+    .getElementById("generate-progress-pdf")
+    .addEventListener("click", () => {
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text("Resumo de Progresso e Medicações", 14, 22);
+
+      let y = 30;
+      // Resumo de medicações
+      doc.setFontSize(14);
+      doc.text("Introdução de Medicações", 14, (y += 10));
+      doc.setFontSize(10);
+      appData.medications.forEach((med) => {
+        doc.text(`- ${med.name}`, 16, (y += 6));
+      });
+
+      // Histórico de progresso
+      y += 15;
+      doc.setFontSize(14);
+      doc.text("Histórico de Métricas Corporais", 14, y);
+      doc.setFontSize(10);
+      appData.progress.history.forEach((entry) => {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.setLineWidth(0.1);
+        doc.line(14, y + 2, 200, y + 2);
+        doc.setFontSize(11);
+        doc.text(
+          `Data: ${new Date(entry.date + "T00:00:00").toLocaleDateString()}`,
+          14,
+          (y += 8)
+        );
+        doc.setFontSize(10);
+        let metricsText = "";
+        for (const key in entry.metrics) {
+          metricsText += `${key.replace("_", " ")}: ${entry.metrics[key]} | `;
+        }
+        doc.text(doc.splitTextToSize(metricsText, 180), 16, (y += 6));
+        y += doc.splitTextToSize(metricsText, 180).length * 5;
+      });
+
+      doc.save("resumo_progresso.pdf");
+    });
+
+  // --- LEMBRETE SEMANAL ---
+  const reminderModal = document.getElementById("reminder-modal");
+  const closeBtn = document.querySelector(".close-button");
+  const goToProgressBtn = document.getElementById("go-to-progress-btn");
+
+  function checkWeeklyReminder() {
+    const lastCheck = appData.lastUpdateCheck
+      ? new Date(appData.lastUpdateCheck)
+      : null;
+    if (!lastCheck) {
+      // Primeira vez, não mostra
+      appData.lastUpdateCheck = new Date().toISOString();
+      saveData();
+      return;
+    }
+
+    const oneWeekInMs = 7 * 24 * 60 * 60 * 1000;
+    const now = new Date();
+
+    if (now.getTime() - lastCheck.getTime() > oneWeekInMs) {
+      reminderModal.style.display = "block";
+    }
+  }
+
+  closeBtn.onclick = () => {
+    reminderModal.style.display = "none";
+    appData.lastUpdateCheck = new Date().toISOString();
+    saveData();
+  };
+  goToProgressBtn.onclick = () => {
+    showPage("progress-page");
+    reminderModal.style.display = "none";
+    appData.lastUpdateCheck = new Date().toISOString();
+    saveData();
+  };
+  window.onclick = (event) => {
+    if (event.target == reminderModal) {
+      reminderModal.style.display = "none";
+      appData.lastUpdateCheck = new Date().toISOString();
+      saveData();
+    }
+  };
+
+  // --- INICIALIZAÇÃO DO APP ---
+  function initializeApp() {
+    loadData();
+    populateTimeSelect();
+
+    // Renderizar todas as seções
+    renderMedications();
+    renderDiet();
+    renderWorkouts();
+    renderProgressSettings();
+    renderProgressHistory();
+    renderDashboard();
+
+    showPage("dashboard-page"); // Começa no dashboard
+    checkWeeklyReminder();
+  }
+
+  initializeApp();
 });
